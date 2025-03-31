@@ -107,16 +107,21 @@ function ShowLister() {
               <label htmlFor="eventType" className="block text-white font-medium mb-2">
                 Event Type
               </label>
-              <input
-                type="text"
+              <select
                 name="eventType"
                 id="eventType"
                 value={formData.eventType}
                 onChange={handleChange}
-                placeholder="E.g., Concert, Sports, Movie"
                 className="w-full bg-transparent text-white border border-gray-500 rounded px-3 py-2"
                 required
-              />
+              >
+                <option value="" disabled hidden>
+                  Select an event type
+                </option>
+                <option value="Concert" className="bg-black">Concert</option>
+                <option value="Movie" className="bg-black">Movie</option>
+                <option value="Sport" className="bg-black">Sport</option>
+              </select>
             </div>
           </>
         );

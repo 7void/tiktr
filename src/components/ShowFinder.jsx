@@ -1,16 +1,14 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useLocation, Link } from "react-router-dom";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css"; 
 import "slick-carousel/slick/slick-theme.css";
 import { motion } from "framer-motion";
 import { Search, TrendingUp as TrendingUpIcon } from "lucide-react";
-import { Link } from "react-router-dom";
 import EventCard from "./EventCard";
 import { connectWallet, getContractInstance, getAllEventIds } from "../blockchain";
 import { ethers } from "ethers";
 
-// Helper function to parse metadata from metadataURI query parameters,
-// now also extracting eventType.
 function parseMetadata(metadataURI) {
   try {
     const url = new URL(metadataURI);
@@ -20,7 +18,7 @@ function parseMetadata(metadataURI) {
       date: url.searchParams.get("date") || "N/A",
       location: url.searchParams.get("location") || "N/A",
       image: url.searchParams.get("image") || "",
-      eventType: url.searchParams.get("eventType") || ""  // New field for event type
+      eventType: url.searchParams.get("eventType") || ""
     };
   } catch (error) {
     return {
@@ -35,12 +33,23 @@ function parseMetadata(metadataURI) {
 }
 
 function ShowFinder() {
+  const location = useLocation();
   const [query, setQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [onChainEvents, setOnChainEvents] = useState([]);
   const [loadingEvents, setLoadingEvents] = useState(false);
   const [visibleCount, setVisibleCount] = useState(6);
   const loadMoreRef = useRef(null);
+
+  // New state to keep track of selected category filters
+  const [selectedCategories, setSelectedCategories] = useState([]);
+
+  // Set initial filter if passed from Home
+  useEffect(() => {
+    if (location.state && location.state.filter) {
+      setSelectedCategories([location.state.filter]);
+    }
+  }, [location.state]);
 
   // Fetch on-chain events on mount
   useEffect(() => {
@@ -78,23 +87,37 @@ function ShowFinder() {
 
   useEffect(() => {
     setVisibleCount(6);
-  }, [query]);
+  }, [query, selectedCategories]);
 
   const searchqueryfunc = (e) => {
     setQuery(e.target.value);
   };
 
   // Filter events based on metadataURI search
-  const filteredEvents = onChainEvents.filter(event =>
+  let filteredEvents = onChainEvents.filter(event =>
     event.metadataURI.toLowerCase().includes(query.toLowerCase())
   );
+
+  // Further filter events by eventType if any categories are selected
+  if (selectedCategories.length > 0) {
+    filteredEvents = filteredEvents.filter(event => {
+      const meta = parseMetadata(event.metadataURI);
+      return selectedCategories.map(cat => cat.toLowerCase()).includes(meta.eventType.toLowerCase());
+    });
+  }
+
   const currentEvents = filteredEvents.slice(0, visibleCount);
+
+  // Compute latest events (last 6 events, newest first)
+  const latestEvents = onChainEvents.length > 0
+    ? [...onChainEvents].slice(-5).reverse()
+    : [];
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && visibleCount < filteredEvents.length) {
-          setVisibleCount(prev => prev + 6);
+          setVisibleCount(prev => prev + 5);
         }
       },
       { threshold: 0.1 }
@@ -109,12 +132,12 @@ function ShowFinder() {
     };
   }, [loadMoreRef, filteredEvents, visibleCount]);
 
-  // Carousel settings for horizontal cards
+  // Carousel settings for slider
   const sliderSettings = {
     dots: true,
     infinite: true,
     speed: 500,
-    slidesToShow: 2,
+    slidesToShow: 3,
     slidesToScroll: 1,
     centerMode: false,
     centerPadding: '0px',
@@ -133,14 +156,19 @@ function ShowFinder() {
     ],
   };
 
-  const horizontalCards = [
-    { id: 1, title: '', image: 'findshowscard1.jpg', link: '#' },
-    { id: 2, title: '', image: 'findshowscard2.jpg', link: '#' },
-    { id: 3, title: '', image: 'findshowscard3.jpg', link: '#' },
-    { id: 4, title: '', image: 'findshowscard4.jpg', link: '#' },
-    { id: 5, title: '', image: 'findshowscard5.jpg', link: '#' },
-    { id: 6, title: '', image: 'findshowscard6.jpg', link: '#' },
-  ];
+  // Category button click handler to toggle filters
+  const toggleCategory = (category) => {
+    setSelectedCategories(prev => {
+      if (prev.includes(category)) {
+        return prev.filter(cat => cat !== category);
+      } else {
+        return [...prev, category];
+      }
+    });
+  };
+
+  // Utility to check if a category is selected
+  const isCategorySelected = (category) => selectedCategories.includes(category);
 
   return (
     <div className="bg-black/90 pt-[100px]">
@@ -164,43 +192,64 @@ function ShowFinder() {
         </span>
       </h1>
 
-      <div className="w-full px-8 pb-16">
+      <div className="w-full px-8 pb-16 pt-8">
         <Slider {...sliderSettings}>
-          {horizontalCards.map((card) => (
-            <div key={card.id} className="px-2 custom-card">
-              <a
-                href={card.link}
-                className="block rounded-lg shadow-lg overflow-hidden relative transition-all duration-300"
-              >
-                <img
-                  src={card.image}
-                  alt={card.title}
-                  className="w-full h-[300px] object-cover"
-                />
-              </a>
-            </div>
-          ))}
+          {latestEvents.map((event) => {
+            const metadata = parseMetadata(event.metadataURI);
+            return (
+              <div className="px-2 custom-card" key={event.id}>
+                <Link to="/tickets" state={{ event }}>
+                  <div className="relative overflow-visible transform origin-center transition duration-300 ease-in-out hover:scale-[1.02] hover:shadow-2xl">
+                    <img
+                      src={metadata.image || "fallback.jpg"}
+                      alt={metadata.title}
+                      className="w-full h-[300px] object-cover rounded-lg shadow-lg filter brightness-75 hover:brightness-100"
+                    />
+                    <div className="absolute bottom-0 left-0 w-full p-2 bg-gradient-to-t from-black to-transparent rounded-b-lg">
+                      <span className="text-white text-lg font-bold">{metadata.title}</span>
+                    </div>
+                  </div>
+                </Link>
+              </div>
+            );
+          })}
         </Slider>
       </div>
 
       {/* Search & Category Buttons */}
-      <div className="flex items-center gap-4 px-2 mt-2 w-full justify-center pt-4">
-        <button
-          className="bg-[#103628] text-gray-400 bg-opacity-60 text-[16px]
-                     hover:scale-105 hover:bg-gray-500 hover:text-black
-                     focus:outline-1 outline-slate-300 px-4 py-2 
-                     rounded-3xl transition-transform"
-        >
-          Movies
-        </button>
-        <button
-          className="bg-[#103628] text-gray-400 bg-opacity-60 text-[16px]
-                     hover:scale-105 hover:bg-gray-500 hover:text-black
-                     focus:outline-1 outline-slate-300 px-4 py-2
-                     rounded-3xl transition-transform"
-        >
-          Concerts
-        </button>
+      <div className="flex flex-col items-center gap-4 px-2 mt-2 w-full justify-center pt-4">
+        <div className="flex gap-4">
+          <button
+            onClick={() => toggleCategory("Movie")}
+            className={`bg-[#103628] text-[16px] px-4 py-2 rounded-3xl transition-transform ${
+              isCategorySelected("Movie")
+                ? "text-black bg-gray-500 scale-105"
+                : "text-gray-400 bg-opacity-60 hover:scale-105 hover:bg-gray-500 hover:text-black"
+            }`}
+          >
+            Movies
+          </button>
+          <button
+            onClick={() => toggleCategory("Concert")}
+            className={`bg-[#103628] text-[16px] px-4 py-2 rounded-3xl transition-transform ${
+              isCategorySelected("Concert")
+                ? "text-black bg-gray-500 scale-105"
+                : "text-gray-400 bg-opacity-60 hover:scale-105 hover:bg-gray-500 hover:text-black"
+            }`}
+          >
+            Concerts
+          </button>
+          <button
+            onClick={() => toggleCategory("Sport")}
+            className={`bg-[#103628] text-[16px] px-4 py-2 rounded-3xl transition-transform ${
+              isCategorySelected("Sport")
+                ? "text-black bg-gray-500 scale-105"
+                : "text-gray-400 bg-opacity-60 hover:scale-105 hover:bg-gray-500 hover:text-black"
+            }`}
+          >
+            Sports
+          </button>
+        </div>
         <motion.div
           initial={{ width: 40 }}
           animate={{ width: isSearchOpen ? 300 : 40 }}
@@ -234,7 +283,6 @@ function ShowFinder() {
             <p className="text-white text-center">Loading events...</p>
           ) : (
             currentEvents.map((event, index) => {
-              // Parse metadata from the event's metadataURI
               const metadata = parseMetadata(event.metadataURI);
               const { title, date, location, image, eventType } = metadata;
               return (
@@ -245,14 +293,13 @@ function ShowFinder() {
                     date={date || "N/A"}
                     location={location || "N/A"}
                     price={ethers.formatEther(event.ticketPrice)}
-                    eventType={eventType}  // Pass eventType to EventCard
+                    eventType={eventType}
                   />
                 </Link>
               );
             })
           )}
         </div>
-        {/* Sentinel element for infinite scroll */}
         <div ref={loadMoreRef} className="h-10"></div>
       </div>
     </div>

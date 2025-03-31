@@ -157,7 +157,6 @@ function TicketPage() {
                 <DollarSignIcon className="w-5 h-5" />
                 <p>{ethers.formatEther(event.ticketPrice)} ETH</p>
               </div>
-              <p className="text-white mb-4">{metadata.desc}</p>
             </>
           ) : (
             <h1 className="text-2xl font-bold mb-4 text-black">

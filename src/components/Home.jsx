@@ -1,9 +1,9 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import concertimg from '../assets/images/concertimg.jpeg'
-import concertTile from '../assets/images/concert-tile.webp'
-import moviesTile from '../assets/images/movies-tile2.webp'
-import webinarTile from '../assets/images/webinar-tile2.jpg'
+import { Link, useNavigate } from 'react-router-dom';
+import concertimg from '../assets/images/concertimg.jpeg';
+import concertTile from '../assets/images/concert-tile.webp';
+import moviesTile from '../assets/images/movies-tile2.webp';
+import webinarTile from '../assets/images/webinar-tile2.jpg';
 
 function Home() {
   const naviButton = useNavigate();
@@ -11,7 +11,10 @@ function Home() {
   return (
     <>
       <div className="relative min-h-screen bg-[#0d0d0d] transition-colors duration-300"> 
-        <div className="absolute inset-0 bg-cover bg-center opacity-50" style={{ backgroundImage: `url(${concertimg})` }}></div>
+        <div
+          className="absolute inset-0 bg-cover bg-center opacity-50"
+          style={{ backgroundImage: `url(${concertimg})` }}
+        ></div>
 
         <div className="relative z-10 flex flex-col min-h-screen justify-start px-10 py-20 pt-48 font-bold">
           <div className="text-white text-6xl font-bold font-serif drop-shadow-lg text-left leading-snug">
@@ -40,24 +43,29 @@ function Home() {
         <h1 className="text-4xl font-bold mb-4 pt-[200px]">Explore</h1>
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 max-w-7xl w-full pt-[120px]">
           {[
-            { title: 'Concerts', description: '', image: concertTile },
-            { title: 'Movies', description: '', image: moviesTile },
-            { title: 'Webinars', description: '', image: webinarTile },
+            { title: 'Concerts', image: concertTile, filter: 'Concert' },
+            { title: 'Movies', image: moviesTile, filter: 'Movie' },
+            { title: 'Webinars', image: webinarTile, filter: 'Sports' }  
           ].map((event, index) => (
-            <div
+            <Link
               key={index}
-              className="relative group h-[600px] overflow-hidden rounded-lg shadow-lg bg-gray-900" // Darker tile color
+              to="/FindShows"
+              state={{ filter: event.filter }}  // pass the filter value in state
             >
-              <img
-                src={event.image}
-                alt={event.title}
-                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-              />
-              <div className="absolute inset-0 bg-black/50 transition-opacity duration-300 group-hover:bg-black/30"></div>
-              <div className="absolute top-0 left-0 p-6">
-                <h3 className="text-2xl font-bold">{event.title}</h3>
+              <div
+                className="relative group h-[600px] overflow-hidden rounded-lg shadow-lg bg-gray-900"
+              >
+                <img
+                  src={event.image}
+                  alt={event.title}
+                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                />
+                <div className="absolute inset-0 bg-black/50 transition-opacity duration-300 group-hover:bg-black/30"></div>
+                <div className="absolute top-0 left-0 p-6">
+                  <h3 className="text-2xl font-bold">{event.title}</h3>
+                </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </section>
