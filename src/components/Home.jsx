@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import concertimg from '../assets/images/concertimg.jpeg';
 import concertTile from '../assets/images/concert-tile.webp';
 import moviesTile from '../assets/images/movies-tile2.webp';
-import webinarTile from '../assets/images/webinar-tile2.jpg';
+import sportsTile from '../assets/images/sports.jpg';
 
 function Home() {
   const naviButton = useNavigate();
@@ -45,7 +45,7 @@ function Home() {
           {[
             { title: 'Concerts', image: concertTile, filter: 'Concert' },
             { title: 'Movies', image: moviesTile, filter: 'Movie' },
-            { title: 'Webinars', image: webinarTile, filter: 'Sports' }  
+            { title: 'Sports', image: sportsTile, filter: 'Sport' }  
           ].map((event, index) => (
             <Link
               key={index}
