@@ -16,33 +16,55 @@ contract TiktrTicket is ERC721URIStorage, ERC721Burnable, Ownable {
         string metadataURI;   
         uint256 maxTickets;   
         uint256 ticketsSold;  
+        string eventType;     // New parameter: event type (sports, movies, concerts, etc.)
     }
 
+    /// @notice Mapping to store which event a given token belongs to.
+    mapping(uint256 => uint256) public tokenEventId;
     mapping(uint256 => Event) public events;
+
+    // Mapping for event-specific guard addresses.
+    // For each eventId, map guard addresses to an authorization flag.
+    mapping(uint256 => mapping(address => bool)) public eventGuards;
 
     event EventCreated(
         uint256 indexed eventId, 
         address indexed creator, 
         uint256 ticketPrice, 
         string metadataURI,
-        uint256 maxTickets
+        uint256 maxTickets,
+        string eventType     // New event type included in the event
     );
     event TicketMinted(uint256 indexed eventId, uint256 tokenId, address indexed owner);
+    event TicketBurned(uint256 indexed tokenId, address burnedBy);
+    event GuardAuthorized(uint256 indexed eventId, address indexed guard, bool authorized);
 
     constructor() ERC721("TiktrTicket", "TIKTR") Ownable(msg.sender) {
         ticketCounter = 0;
         eventCounter = 0;
     }
 
-    /// @notice Creates a new event with essential on-chain data.
+    /// @notice Allows the event creator to authorize or revoke a guard for their event.
+    /// @param eventId The event ID.
+    /// @param guard The address to authorize.
+    /// @param authorized True to authorize; false to revoke.
+    function authorizeGuardForEvent(uint256 eventId, address guard, bool authorized) external {
+        require(msg.sender == events[eventId].creator, "Not authorized");
+        eventGuards[eventId][guard] = authorized;
+        emit GuardAuthorized(eventId, guard, authorized);
+    }
+
+    /// @notice Creates a new event.
     /// @param metadataURI Off-chain URI containing event details.
     /// @param ticketPrice Price per ticket in wei.
     /// @param maxTickets Maximum number of tickets available.
+    /// @param eventType The type of event (e.g., "sports", "movies", "concerts").
     /// @return eventId The unique event identifier.
     function createEvent(
         string memory metadataURI,
         uint256 ticketPrice,
-        uint256 maxTickets
+        uint256 maxTickets,
+        string memory eventType
     ) public returns (uint256) {
         uint256 eventId = eventCounter;
         events[eventId] = Event({
@@ -50,12 +72,13 @@ contract TiktrTicket is ERC721URIStorage, ERC721Burnable, Ownable {
             ticketPrice: ticketPrice,
             metadataURI: metadataURI,
             maxTickets: maxTickets,
-            ticketsSold: 0
+            ticketsSold: 0,
+            eventType: eventType
         });
-        eventIds.push(eventId); 
+        eventIds.push(eventId);
         eventCounter++;
 
-        emit EventCreated(eventId, msg.sender, ticketPrice, metadataURI, maxTickets);
+        emit EventCreated(eventId, msg.sender, ticketPrice, metadataURI, maxTickets, eventType);
         return eventId;
     }
 
@@ -74,7 +97,9 @@ contract TiktrTicket is ERC721URIStorage, ERC721Burnable, Ownable {
         ticketCounter++;
 
         ev.ticketsSold++;
+        tokenEventId[tokenId] = eventId;
 
+        // Forward payment to event creator
         (bool sent, ) = ev.creator.call{ value: msg.value }("");
         require(sent, "Failed to forward payment");
 
@@ -82,11 +107,21 @@ contract TiktrTicket is ERC721URIStorage, ERC721Burnable, Ownable {
         return tokenId;
     }
 
-    /// @notice Burns the ticket, making it unusable.
-    /// @param tokenId The ID of the ticket to burn.
+    /// @notice Allows the ticket owner to burn their ticket.
+    /// @param tokenId The ticket ID to burn.
     function useTicket(uint256 tokenId) public {
         require(ownerOf(tokenId) == msg.sender, "Only the ticket owner can use it");
-        burn(tokenId);
+        _burn(tokenId);
+        emit TicketBurned(tokenId, msg.sender);
+    }
+
+    /// @notice Allows an event-specific authorized guard to burn a ticket.
+    /// @param tokenId The ticket ID to burn.
+    function burnTicketByGuard(uint256 tokenId) public {
+        uint256 eventId = tokenEventId[tokenId];
+        require(eventGuards[eventId][msg.sender], "Not authorized to burn tickets for this event");
+        _burn(tokenId);
+        emit TicketBurned(tokenId, msg.sender);
     }
 
     /// @notice Returns an array of all event IDs.

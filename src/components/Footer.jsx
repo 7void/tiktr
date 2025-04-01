@@ -78,7 +78,7 @@ export default function Footer() {
                 <div className="sm:flex sm:items-center sm:justify-between">
                     <span className="text-sm text-gray-200 sm:text-center">
                         ©
-                        <a href="https://github.com/adith2005-20/tiktr" className="hover:underline">
+                        <a href="https://github.com/7void/tiktr" className="hover:underline">
                             2025 tiktr
                         </a>
                         . All Rights Reserved.
