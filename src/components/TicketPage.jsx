@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 import { connectWallet, buyTicket as blockchainBuyTicket } from "../blockchain";
 import { ethers } from "ethers";
 import { CalendarIcon, MapPinIcon, DollarSignIcon } from "lucide-react";
+import { toast } from "react-hot-toast";
 
 // Helper function to parse metadata from metadataURI query params
 function parseMetadata(metadataURI) {
@@ -116,10 +117,10 @@ function TicketPage() {
       // Pass event.id so the contract knows which event you're buying a ticket for.
       const newTicketId = await blockchainBuyTicket(signer, event.id, tokenURI, priceOverride);
       setTicketId(newTicketId);
-      alert(`Ticket purchased! Your token ID is: ${newTicketId.toString()}`);
+      toast.success(`Ticket purchased! Your token ID is: ${newTicketId.toString()}`);
     } catch (error) {
       console.error("Error buying ticket:", error);
-      alert("Error buying ticket. Check console for details.");
+      toast.error("Error buying ticket. Check console for details.");
     }
     setLoading(false);
   };
