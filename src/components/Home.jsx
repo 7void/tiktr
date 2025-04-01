@@ -69,13 +69,6 @@ function Home() {
           ))}
         </div>
       </section>
-
-      <section className="min-h-screen flex flex-col justify-center items-center bg-[#0d0d0d] text-white">
-        <h2 className="text-4xl font-bold mb-4">Stay Connected</h2>
-        <p className="text-lg max-w-2xl text-center">
-          Join our community and never miss out on your favorite artist's performances.
-        </p>
-      </section>
     </>
   );
 }
