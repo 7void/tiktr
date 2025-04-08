@@ -14,7 +14,7 @@ function ShowLister() {
     price: "",
     description: "",
     maxTickets: "",
-    eventType: "", // New field for event type
+    eventType: "", 
   });
   // State for guard addresses (comma separated)
   const [guardAddresses, setGuardAddresses] = useState("");
@@ -256,7 +256,7 @@ function ShowLister() {
         metadataURI,
         ticketPriceWei,
         formData.maxTickets,
-        formData.eventType  // New argument for event type
+        formData.eventType  
       );
       toast.success("Event listed successfully! Event ID: " + eventId);
 

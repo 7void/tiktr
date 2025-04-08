@@ -1,6 +1,7 @@
 import React from 'react'
 import img1 from '../assets/images/aboutpage1.jpg'
 import img2 from '../assets/images/aboutpage2.jpg'
+import img3 from '../assets/images/aboutpage3.jpg'
 function About() {
   return (
     <>
@@ -10,6 +11,7 @@ function About() {
         <div className="flex justify-center items-center w-40 h-40 mx-auto mt-20 gap-x-20">
           <img src={img1} className="rounded-full p-2 object-cover" alt="Person" />
           <img src={img2} className="rounded-full p-2 object-cover" alt="Person" />
+          <img src={img3} className="rounded-full p-2 object-cover" alt="Person" />
         </div>
         <div className="font-light text-lg p-4 mt-20 mb-20 text-center">
           At Tiktr, we're not just redefining live events—we're pioneering a revolution in ticketing. Leveraging the power of blockchain technology, we ensure that your tickets are secure, authentic, and uniquely yours. By creating a platform built on transparency and trust, we're tackling issues like ticket fraud and scalping, making your concert experience worry-free.

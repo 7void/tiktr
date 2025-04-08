@@ -108,7 +108,7 @@ function ShowFinder() {
 
   const currentEvents = filteredEvents.slice(0, visibleCount);
 
-  // Compute latest events (last 6 events, newest first)
+  // Compute latest events (last 5 events, newest first)
   const latestEvents = onChainEvents.length > 0
     ? [...onChainEvents].slice(-5).reverse()
     : [];
