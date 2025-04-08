@@ -105,7 +105,7 @@ function MyEvents() {
   }, []);
 
   const openQrModal = (ticket) => {
-    const qrData = `https://tiktr-seven.vercel.app/use-ticket?tokenId=${ticket.tokenId}&eventId=${ticket.eventId}&burnType=guard`;
+    const qrData = `https://verifytiktr.adith.me/use-ticket?tokenId=${ticket.tokenId}&eventId=${ticket.eventId}&burnType=guard`;
 
     const ev = eventMap[ticket.eventId];
     let parsed = null;
